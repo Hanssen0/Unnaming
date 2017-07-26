@@ -1,0 +1,46 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# SDL2 environment
+!Unnaming/libfreetype-6.dll
+!Unnaming/libjpeg-9.dll
+!Unnaming/libpng16-16.dll
+!Unnaming/libtiff-5.dll
+!Unnaming/libwebp-4.dll
+!Unnaming/SDL2.dll
+!Unnaming/SDL2_image.dll
+!Unnaming/SDL2_ttf.dll
+!Unnaming/zlib1.dll
+
+# Log
+*.log
