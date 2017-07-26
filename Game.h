@@ -19,18 +19,7 @@ class DialogBox
 
   /*Max number of picture that dialog box have, 0 means infinity
   */
-  void Resize(int32_t size) {
-    if (size < 0)
-      throw Error("Unavailable pictures size.");
-    pictures_size_ = size;
-    if (pictures_size_ < pictures_.size() && pictures_size_ != 0) {
-      std::list<Picture>::iterator eraser = pictures_.begin();
-      pictures_height_ = 0;
-      while (size--)
-        pictures_height_ += (*(eraser++)).picture_height();
-      pictures_.erase( eraser, pictures_.end());
-    }
-  }
+  inline void Resize(int32_t);
 
   /*Add a picture to the list, true to add it to the button of the list
   */
@@ -51,4 +40,18 @@ class DialogBox
   std::list<Picture> pictures_;/*Pictures in the list*/
   DialogBox & operator=(DialogBox &) = delete;
 };
+
+void DialogBox::Resize(int32_t size) {
+  if (size < 0)
+    throw Error("Unavailable pictures size.");
+  pictures_size_ = size;
+  if (pictures_size_ < pictures_.size() && pictures_size_ != 0) {
+    std::list<Picture>::iterator eraser = pictures_.begin();
+    pictures_height_ = 0;
+    while (size--)
+      pictures_height_ += (*(eraser++)).picture_height();
+    pictures_.erase( eraser, pictures_.end());
+  }
+}
+
 #endif // NEW_GAME_H_

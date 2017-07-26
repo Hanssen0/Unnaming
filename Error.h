@@ -17,10 +17,7 @@ class Error {
 
   /*Add a string after error type
   */
-  Error& operator+(const std::string &extern_string) {
-    error_type_ += extern_string;
-    return *this;
-  }
+  inline Error& operator+(const std::string &); 
 
   Error(const std::string &type) {error_type_ = type;}
 
@@ -28,5 +25,10 @@ class Error {
   std::string error_type_;/*A string that describe type of error*/
   Error & operator=(Error&) = delete;
 };
+
+Error& Error::operator+(const std::string &extern_string) {
+  error_type_ += extern_string;
+  return *this;
+}
 
 #endif // NEW_ERROR_H_

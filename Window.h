@@ -21,40 +21,19 @@ class Window {
 
   /*Create a window, and create a renderer for it
   */
-  void NewWindow(const std::string &title, int x, int y, int w, int h, Uint32 window_flag, Uint32 renderer_flag) {
-    clear();
-    if ((target_window_ = SDL_CreateWindow(title.c_str(), x, y, w, h, window_flag)) == nullptr) {
-      throw Error("Unable to create window.") + SDL_GetError();
-    }else {
-      if ((target_renderer_ = SDL_CreateRenderer(target_window_, -1, renderer_flag)) == nullptr)
-        throw Error("Unable to create renderer.") + SDL_GetError();
-    }
-  }
+  inline void NewWindow(const std::string&, int, int, int, int, Uint32 , Uint32);
 
   /*Clear the window to copy pictures to it
   */
-  Window& ReadyToRender() {
-    SDL_RenderClear(target_renderer_);
-    return *this;
-  }
+  inline Window& ReadyToRender(); 
 
   /*Display everything copy to the window
   */
-  Window& Display() {
-    SDL_RenderPresent(target_renderer_);
-    return *this;
-  }
+  inline Window& Display();
 
   /*Delete he window and the renderer to ready for next window
   */
-  void clear() {
-    if (target_window_ != nullptr)
-      SDL_DestroyWindow(target_window_);
-    if (target_renderer_ != nullptr)
-      SDL_DestroyRenderer(target_renderer_);
-    target_window_ = nullptr;
-    target_renderer_ = nullptr;
-  }
+  inline void clear();
 
  private:
   SDL_Window *target_window_;/*window, nullptr when there is no window*/
@@ -72,21 +51,11 @@ class Font
 
   /*Open a font with the given size
   */
-  void open(std::string path, int size) {
-    if (size <= 0)
-      throw Error("Unavailable font size.");
-    clear();
-    if ((font_ = TTF_OpenFont(path.c_str(), size)) == nullptr)
-      throw Error("Unable to open font.") + SDL_GetError();
-  }
+  inline void open(std::string, int);
 
   /*Close the font to ready for next font
   */
-  void clear() {
-    if (font_ != nullptr)
-      TTF_CloseFont(font_);
-    font_ = nullptr;
-  }
+  inline void clear();
 
  private:
   friend class Picture;/*To create a picture by text with the font*/
@@ -99,28 +68,13 @@ class Font
 class Picture
 {
  public:
-  Picture() {
-    picture_ = nullptr;
-    renderer_ = nullptr;
-    is_visible_ = true;
-    source_picture_ = nullptr, derivative_picture_ = nullptr;
-    picture_height_ = picture_width_ = 0;
-    part_of_picture_ = {0, 0, 0, 0} ;
-  }
+  inline Picture();
 
   ~Picture() {clear();}
 
   /*Copy picture, when one of these pictures call clear(), picture will not be destroyed to make another picture can use it
   */
-  Picture& operator=(Picture &source) {
-    source_picture_ = &source;
-    source.derivative_picture_ = this;
-    picture_ = source.picture_, renderer_ = source.renderer_;
-    part_of_picture_ = source.part_of_picture_;
-    is_visible_ = source.is_visible_;
-    picture_width_ = source.picture_width_, picture_height_ = source.picture_height_;
-    return *this;
-  }
+  inline Picture& operator=(Picture&);
 
   /*Create picture from a PNG file
   */
@@ -147,42 +101,13 @@ class Picture
 
   /*Copy picture to the given zone on the window
   */
-  void CopyTo(const SDL_Rect &target) {
-    if (!is_visible_ || picture_ == nullptr)
-      return;
-    SDL_Rect source = part_of_picture_, derivative = target;
-    if (source.w <= 0)
-      source.w = picture_width_ - source.x;
-    if (source.h <= 0)
-      source.h = picture_height_ - source.y;
-    if (derivative.w <= 0)
-      derivative.w = source.w;
-    if (derivative.h <= 0)
-      derivative.h = source.h;
-    if (SDL_RenderCopy(renderer_, picture_, &source, &derivative) != 0)
-      throw Error("Unable to copy texture.") + SDL_GetError();
-  }
+  inline void CopyTo(const SDL_Rect&);
 
   void set_is_visible(bool is_visible) {is_visible_ = is_visible;}
 
   /*Clear thing to ready for next picture
   */
-  void clear() {
-    if (source_picture_ == nullptr && derivative_picture_ == nullptr) {
-      if (picture_ != nullptr)
-        SDL_DestroyTexture(picture_);
-    }else {
-      if (source_picture_ != nullptr)
-        source_picture_->derivative_picture_ = (derivative_picture_ == source_picture_ ? nullptr : derivative_picture_);
-      if (derivative_picture_ != nullptr)
-        derivative_picture_->source_picture_ = (source_picture_ == derivative_picture_ ? nullptr : source_picture_);
-    }
-    source_picture_ = nullptr, derivative_picture_ = nullptr;
-    picture_ = nullptr;
-    picture_height_ = picture_width_ = 0;
-    part_of_picture_ = {0, 0, 0, 0} ;
-
-  }
+  inline void clear();
 
   int picture_width() {return picture_width_;}
 
@@ -206,30 +131,15 @@ class Object {
 
   /*set style of Object
   */
-  void set_style(int style) {
-    if (style < 0 || static_cast<unsigned int>(style) >= styles_picture_.size())
-      throw Error("Unavailable object style!");
-    style_ = style;
-  }
+  inline void set_style(int);
 
   /*Return the picture of the style to edit it
   */
-  Picture& styles_picture() {
-    if (style_ == -1)
-      throw Error("Object have no style!");
-    return styles_picture_[style_];
-  }
+  inline Picture& styles_picture();
 
   /*Set the number of style that Object have
   */
-  void resize_styles(int size) {
-    try {
-      styles_picture_.resize(size);
-    }catch(...) {
-      throw Error("Unable to resize object styles.");
-    }
-    style_ = (size == 0 ? -1 : 0);
-  }
+  inline void resize_styles(int);
 
   /*Add a zone to the detect zone of object*/
   void AddToDetectZone(const SDL_Rect &);
@@ -254,10 +164,7 @@ class Timer
  public:
   Timer() {start();}
 
-  Timer & operator=(Timer &timer) {
-    start_time_ = timer.start_time_;
-    return *this;
-  }
+  inline Timer & operator=(Timer&);
 
   /*Start timer
   */
@@ -270,4 +177,125 @@ class Timer
  private:
   Uint32 start_time_;/*Save the time when timer start*/
 };
+
+void Window::NewWindow(const std::string &title, int x, int y, int w, int h, Uint32 window_flag, Uint32 renderer_flag) {
+  clear();
+  if ((target_window_ = SDL_CreateWindow(title.c_str(), x, y, w, h, window_flag)) == nullptr) {
+    throw Error("Unable to create window.") + SDL_GetError();
+  }else {
+    if ((target_renderer_ = SDL_CreateRenderer(target_window_, -1, renderer_flag)) == nullptr)
+      throw Error("Unable to create renderer.") + SDL_GetError();
+  }
+}
+
+Window& Window::ReadyToRender() {
+  SDL_RenderClear(target_renderer_);
+  return *this;
+}
+
+Window& Window::Display() {
+  SDL_RenderPresent(target_renderer_);
+  return *this;
+}
+
+void Window::clear() {
+  if (target_window_ != nullptr)
+    SDL_DestroyWindow(target_window_);
+  if (target_renderer_ != nullptr)
+    SDL_DestroyRenderer(target_renderer_);
+  target_window_ = nullptr;
+  target_renderer_ = nullptr;
+}
+
+void Font::open(std::string path, int size) {
+  if (size <= 0)
+    throw Error("Unavailable font size.");
+  clear();
+  if ((font_ = TTF_OpenFont(path.c_str(), size)) == nullptr)
+    throw Error("Unable to open font.") + SDL_GetError();
+}
+
+void Font::clear() {
+  if (font_ != nullptr)
+    TTF_CloseFont(font_);
+  font_ = nullptr;
+}
+
+Picture::Picture() {
+  picture_ = nullptr;
+  renderer_ = nullptr;
+  is_visible_ = true;
+  source_picture_ = nullptr, derivative_picture_ = nullptr;
+  picture_height_ = picture_width_ = 0;
+  part_of_picture_ = {0, 0, 0, 0} ;
+}
+
+Picture& Picture::operator=(Picture &source) {
+  source_picture_ = &source;
+  source.derivative_picture_ = this;
+  picture_ = source.picture_, renderer_ = source.renderer_;
+  part_of_picture_ = source.part_of_picture_;
+  is_visible_ = source.is_visible_;
+  picture_width_ = source.picture_width_, picture_height_ = source.picture_height_;
+  return *this;
+}
+
+void Picture::CopyTo(const SDL_Rect &target) {
+  if (!is_visible_ || picture_ == nullptr)
+    return;
+  SDL_Rect source = part_of_picture_, derivative = target;
+  if (source.w <= 0)
+    source.w = picture_width_ - source.x;
+  if (source.h <= 0)
+    source.h = picture_height_ - source.y;
+  if (derivative.w <= 0)
+    derivative.w = source.w;
+  if (derivative.h <= 0)
+    derivative.h = source.h;
+  if (SDL_RenderCopy(renderer_, picture_, &source, &derivative) != 0)
+    throw Error("Unable to copy texture.") + SDL_GetError();
+}
+
+void Picture::clear() {
+  if (source_picture_ == nullptr && derivative_picture_ == nullptr) {
+    if (picture_ != nullptr)
+      SDL_DestroyTexture(picture_);
+  }else {
+    if (source_picture_ != nullptr)
+      source_picture_->derivative_picture_ = (derivative_picture_ == source_picture_ ? nullptr : derivative_picture_);
+    if (derivative_picture_ != nullptr)
+      derivative_picture_->source_picture_ = (source_picture_ == derivative_picture_ ? nullptr : source_picture_);
+  }
+  source_picture_ = nullptr, derivative_picture_ = nullptr;
+  picture_ = nullptr;
+  picture_height_ = picture_width_ = 0;
+  part_of_picture_ = {0, 0, 0, 0} ;
+}
+
+void Object::set_style(int style) {
+  if (style < 0 || static_cast<unsigned int>(style) >= styles_picture_.size())
+    throw Error("Unavailable object style!");
+  style_ = style;
+}
+
+Picture& Object::styles_picture() {
+  if (style_ == -1)
+    throw Error("Object have no style!");
+  return styles_picture_[style_];
+}
+
+void Object::resize_styles(int size) {
+  try {
+    styles_picture_.resize(size);
+  }catch(...) {
+    throw Error("Unable to resize object styles.");
+  }
+  style_ = (size == 0 ? -1 : 0);
+}
+
+Timer& Timer::operator=(Timer &timer) {
+  start_time_ = timer.start_time_;
+  return *this;
+}
+
 #endif // NEW_WINDOW_H_
