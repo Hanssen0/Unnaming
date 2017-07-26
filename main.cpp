@@ -49,7 +49,9 @@ void Exit() {
   IMG_Quit();
 }
 
-int main(int, char**) {
+int main(int argc, char** argv) {
+  std::string path_of_itself = argv[0];
+  path_of_itself = path_of_itself.substr(0, path_of_itself.rfind('/') + 1);
   try {
     Init();
     Window main_window;
@@ -59,7 +61,7 @@ int main(int, char**) {
     plus_one_second_button.resize_styles(2);
     plus_one_second_button.set_style(0);
     Font main_font;
-    main_font.open("Data/Font/WQYzenhei.ttf", 32);
+    main_font.open(path_of_itself + "Data/Font/WQYzenhei.ttf", 32);
     plus_one_second_button.styles_picture().set_renderer(main_window);
     plus_one_second_button.styles_picture().Create("+1s", 0, {0xff, 0xff, 0xff, 0xff}, main_font);
     int rect_width, rect_height;
