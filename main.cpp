@@ -3,9 +3,11 @@ Software license:GPL v3
 Author:Handsome_hell
 E-mail:handsome0hell@gmail.com
 */
-#include "main.h"
+#include "Error.h"
+#include "Game.h"
+#include "Window.h"
+#include "StdHead.h"
 
-std::ofstream ErrorStream;
 
 std::string IntegerToString(int number)
 {
@@ -28,8 +30,6 @@ std::string IntegerToString(int number)
 Call it before use SDL lib
 */
 void Init() {
-  ErrorStream.open("./Error");
-  SDL_SetError("Good");
   if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
     throw Error("initializing SDL error:") + SDL_GetError();
   if (TTF_Init() == -1)
@@ -43,7 +43,6 @@ void Init() {
 Call it after used SDL lib
 */
 void Exit() {
-  ErrorStream.close();
   SDL_StopTextInput();
   SDL_Quit();
   TTF_Quit();
@@ -126,7 +125,10 @@ int main(int, char**) {
     }
   }
   catch(Error &Mes) {
+    std::ofstream ErrorStream;
+    ErrorStream.open("./Error.log");
     ErrorStream << Mes.error_type() << std::endl;
+    ErrorStream.close();
     return 1;
   }
   Exit();
