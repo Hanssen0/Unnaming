@@ -112,6 +112,10 @@ class Picture
   int picture_width() {return picture_width_;}
 
   int picture_height() {return picture_height_;}
+  
+  void HijackWindow() {SDL_SetRenderTarget(renderer_, picture_);}
+
+  void ReleaseWindow() {SDL_SetRenderTarget(renderer_, nullptr);}
 
  private:
   int picture_width_;
@@ -197,7 +201,7 @@ Window& Window::Display() {
   SDL_RenderPresent(target_renderer_);
   return *this;
 }
-
+    
 void Window::clear() {
   if (target_window_ != nullptr)
     SDL_DestroyWindow(target_window_);

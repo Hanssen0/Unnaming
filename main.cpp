@@ -31,11 +31,11 @@ Call it before use SDL lib
 */
 void Init() {
   if (SDL_Init(SDL_INIT_EVERYTHING) == -1)
-    throw Error("initializing SDL error:") + SDL_GetError();
+    throw Error("Initializing SDL2 error:") + SDL_GetError();
   if (TTF_Init() == -1)
-    throw Error("initializing SDL_ttf error:") + SDL_GetError();
+    throw Error("Initializing SDL2_ttf error:") + SDL_GetError();
   if (IMG_Init(IMG_INIT_PNG) == -1)
-    throw Error("initializing SDL_image error:") + SDL_GetError();
+    throw Error("Initializing SDL2_image error:") + SDL_GetError();
   SDL_StartTextInput();
 }
 
@@ -55,23 +55,26 @@ int main(int argc, char** argv) {
   try {
     Init();
     Window main_window;
-    main_window.NewWindow("你好", 50, 50, 700, 300, SDL_WINDOW_SHOWN,
+    main_window.NewWindow("Unnaming", 50, 50, 700, 300, SDL_WINDOW_SHOWN,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_TEXTUREACCESS_TARGET);
-    Object plus_one_second_button;
-    plus_one_second_button.resize_styles(2);
-    plus_one_second_button.set_style(0);
     Font main_font;
-    main_font.open(path_of_itself + "Data/Font/WQYzenhei.ttf", 32);
-    plus_one_second_button.styles_picture().set_renderer(main_window);
-    plus_one_second_button.styles_picture().Create("+1s", 0, {0xff, 0xff, 0xff, 0xff}, main_font);
-    int rect_width, rect_height;
-    rect_width = plus_one_second_button.styles_picture().picture_width();
-    rect_height = plus_one_second_button.styles_picture().picture_height();
-    plus_one_second_button.set_style(1);
-    plus_one_second_button.styles_picture().set_renderer(main_window);
-    plus_one_second_button.styles_picture().Create({100, 100, 100, 0xff}, rect_width, rect_height);
-    plus_one_second_button.styles_picture().set_is_visible(false);
-    plus_one_second_button.AddToDetectZone({0, 0, 0, 0});
+    main_font.open(path_of_itself + "Data/Font/WQYzenhei.ttf", 16);
+    const int block_width = 1, block_height = 1;
+    Picture creature_picture, game_world_surface, nothing_picture;
+    creature_picture.set_renderer(main_window);
+    creature_picture.Create({0xff, 0xff, 0xff}, block_width, block_height);
+    nothing_picture.set_renderer(main_window);
+    nothing_picture.Create({0, 0, 0}, block_width, block_height);
+    const int game_world_width = 700, game_world_height = 200;
+    game_world_surface.set_renderer(main_window);
+    game_world_surface.Create({0, 0, 0}, game_world_width * block_width, game_world_height * block_height);
+    bool game_world_data[2][game_world_width][game_world_height];
+    bool game_world_data_right_now = false;
+    for (int loopx = 0; loopx < game_world_width; ++loopx) {
+      for (int loopy = 0; loopy < game_world_height; ++loopy) {
+        game_world_data[0][loopx][loopy] = rand() % 2;
+      }
+    }
     DialogBox main_dialogbox;
     bool is_running = true;
     SDL_Event main_event;
@@ -81,6 +84,33 @@ int main(int argc, char** argv) {
     fps.set_renderer(main_window);
     Timer fps_controller, fps_monitor;
     while (is_running) {
+      game_world_surface.HijackWindow();
+      for (int loopx = 0; loopx < game_world_width; ++loopx) {
+        for (int loopy = 0; loopy < game_world_height; ++loopy) {
+          short count = 0;
+          if (loopx != 0) {
+            if (game_world_data[game_world_data_right_now][loopx - 1][loopy] == true) ++count;
+            if (loopy != 0 && game_world_data[game_world_data_right_now][loopx - 1][loopy - 1] == true) ++count;
+            if (loopy != game_world_width - 1 && game_world_data[game_world_data_right_now][loopx - 1][loopy + 1] == true) ++count;
+          }
+          if (loopy != 0 && game_world_data[game_world_data_right_now][loopx][loopy - 1] == true) ++count;
+          if (loopy != game_world_width - 1 && game_world_data[game_world_data_right_now][loopx][loopy + 1] == true) ++count;
+          if (loopx != game_world_width - 1) {
+            if (game_world_data[game_world_data_right_now][loopx + 1][loopy] == true) ++count;
+            if (loopy != 0 && game_world_data[game_world_data_right_now][loopx + 1][loopy - 1] == true) ++count;
+            if (loopy != game_world_width - 1 && game_world_data[game_world_data_right_now][loopx + 1][loopy + 1] == true) ++count;
+          }
+          if (count < 2 || count > 3) game_world_data[!game_world_data_right_now][loopx][loopy] = false;
+          if (count == 2) game_world_data[!game_world_data_right_now][loopx][loopy] = game_world_data[game_world_data_right_now][loopx][loopy];
+          if (count == 3) game_world_data[!game_world_data_right_now][loopx][loopy] = true;
+          if (game_world_data[!game_world_data_right_now][loopx][loopy] != game_world_data[game_world_data_right_now][loopx][loopy]) {
+            if (game_world_data[!game_world_data_right_now][loopx][loopy] == false) nothing_picture.CopyTo({loopx * block_width, loopy * block_height, 0, 0});
+            else creature_picture.CopyTo({loopx * block_width, loopy * block_height, 0, 0});
+          }
+        }
+      }
+      game_world_surface.ReleaseWindow();
+      game_world_data_right_now = !game_world_data_right_now;
       while (SDL_PollEvent(&main_event) != 0) {
         switch(main_event.type) {
           case SDL_QUIT: {
@@ -89,34 +119,34 @@ int main(int argc, char** argv) {
           }
           case SDL_MOUSEBUTTONDOWN: {
             if (main_event.button.button == SDL_BUTTON_LEFT) {
-              if (plus_one_second_button.IsInclude(main_event.button.x, main_event.button.y)) {
-                plus_one_second_button.set_style(1);
-                plus_one_second_button.styles_picture().set_is_visible(true);
-                ++click_counter;
-                counter.Create(
-                    "长者的生命已经延续了" + IntegerToString(click_counter) + "s,感谢你的无私续命!",
-                    0, {0xff, 0xff, 0xff, 0xff}, main_font);
-                main_dialogbox.add_picture(counter, false);
+              int center_x = main_event.button.x / block_width, center_y = main_event.button.y / block_height;
+              game_world_data[game_world_data_right_now][center_x][center_y] = true;
+              creature_picture.CopyTo({center_x * block_width, center_y * block_height, 0, 0});
+              if (center_x != 0) {
+                game_world_data[game_world_data_right_now][center_x - 1][center_y] = true;
+                if (center_y != 0) game_world_data[game_world_data_right_now][center_x - 1][center_y - 1] = true;
+                if (center_y != game_world_height - 1) game_world_data[game_world_data_right_now][center_x - 1][center_y + 1] = true;
+              }
+              if (center_y != 0) game_world_data[game_world_data_right_now][center_x][center_y - 1] = true;
+              if (center_y != game_world_height - 1) game_world_data[game_world_data_right_now][center_x][center_y + 1] = true;
+              if (center_x != game_world_width - 1) {
+                game_world_data[game_world_data_right_now][center_x + 1][center_y] = true;
+                if (center_y != 0) game_world_data[game_world_data_right_now][center_x + 1][center_y - 1] = true;
+                if (center_y != game_world_height - 1) game_world_data[game_world_data_right_now][center_x + 1][center_y + 1] = true;
               }
             }
             break;
           }
           case SDL_MOUSEBUTTONUP: {
-              plus_one_second_button.set_style(1);
-              plus_one_second_button.styles_picture().set_is_visible(false);
             break;
           }
         }
       }
       main_window.ReadyToRender();
-      plus_one_second_button.set_style(1);
-      plus_one_second_button.styles_picture().CopyTo({0, 0, 0, 0});
-      plus_one_second_button.set_style(0);
-      plus_one_second_button.styles_picture().CopyTo({0, 0, 0, 0});
-      main_dialogbox.CopyTo(0, plus_one_second_button.styles_picture().picture_height(), 0, 0, main_dialogbox.pictures_height(0));
-      fps.CopyTo({0, plus_one_second_button.styles_picture().picture_height() + main_dialogbox.pictures_height(0), 0, 0});
+      //game_world_surface.CopyTo({0, 0, 0, 0});
+      fps.CopyTo({0, game_world_height * block_height, 0, 0});
       main_window.Display();
-      if (fps_controller.time() < 16) SDL_Delay(16-fps_controller.time());
+      if (fps_controller.time() < 16) SDL_Delay(16 - fps_controller.time());
       fps_controller.start();
       fps_counter++;
       if (fps_monitor.time() >= 1000) {
