@@ -55,19 +55,19 @@ int main(int argc, char** argv) {
   try {
     Init();
     Window main_window;
-    main_window.NewWindow("Unnaming", 50, 50, 700, 300, SDL_WINDOW_SHOWN,
+    main_window.NewWindow("Unnaming", 0, 0, 1500, 800, SDL_WINDOW_SHOWN,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_TEXTUREACCESS_TARGET);
     Font main_font;
     main_font.open(path_of_itself + "Data/Font/WQYzenhei.ttf", 16);
-    const int block_width = 1, block_height = 1;
+    const int block_width = 4, block_height = 4;
     Picture creature_picture, game_world_surface, nothing_picture;
     creature_picture.set_renderer(main_window);
-    creature_picture.Create({0xff, 0xff, 0xff}, block_width, block_height);
+    creature_picture.Create({0xff, 0xff, 0xff, 0xff}, block_width, block_height);
     nothing_picture.set_renderer(main_window);
-    nothing_picture.Create({0, 0, 0}, block_width, block_height);
-    const int game_world_width = 700, game_world_height = 200;
+    nothing_picture.Create({0, 0, 0, 0xff}, block_width, block_height);
+    const int game_world_width = 375, game_world_height = 190;
     game_world_surface.set_renderer(main_window);
-    game_world_surface.Create({0, 0, 0}, game_world_width * block_width, game_world_height * block_height);
+    game_world_surface.Create({0, 0, 0, 0xff}, game_world_width * block_width, game_world_height * block_height);
     bool game_world_data[2][game_world_width][game_world_height];
     bool game_world_data_right_now = false;
     for (int loopx = 0; loopx < game_world_width; ++loopx) {
@@ -82,7 +82,8 @@ int main(int argc, char** argv) {
     Picture counter, fps;
     counter.set_renderer(main_window);
     fps.set_renderer(main_window);
-    Timer fps_controller, fps_monitor;
+    Timer fps_controller, fps_monitor, per;
+    per.start();
     while (is_running) {
       game_world_surface.HijackWindow();
       for (int loopx = 0; loopx < game_world_width; ++loopx) {
@@ -143,7 +144,7 @@ int main(int argc, char** argv) {
         }
       }
       main_window.ReadyToRender();
-      //game_world_surface.CopyTo({0, 0, 0, 0});
+      game_world_surface.CopyTo({0, 0, 0, 0});
       fps.CopyTo({0, game_world_height * block_height, 0, 0});
       main_window.Display();
       if (fps_controller.time() < 16) SDL_Delay(16 - fps_controller.time());
